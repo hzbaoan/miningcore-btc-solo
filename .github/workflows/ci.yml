@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-offline-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore MiningcoreBtcSolo.sln
+
+      - name: Build
+        run: dotnet build MiningcoreBtcSolo.sln -c Release --no-restore
+
+      - name: Run offline regressions
+        shell: bash
+        run: |
+          for mode in vardiff encoding shutdown safety synthetic-gbt; do
+            dotnet run --project src/MiningcoreBtcSolo.Regtest/MiningcoreBtcSolo.Regtest.csproj \
+              -c Release --no-build -- "$mode"
+          done
+
+  regtest-production-paths:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Start pinned Bitcoin Core regtest node
+        shell: bash
+        run: |
+          # Bitcoin Core 31.1 multi-architecture manifest.
+          docker run --detach --name bitcoind-regtest \
+            --publish 127.0.0.1:18443:18443 \
+            --publish 127.0.0.1:18444:18444 \
+            --publish 127.0.0.1:28332:28332 \
+            bitcoin/bitcoin@sha256:da25cedc66b1daefff9f412ee196c901a899c3fa68a33b20849c3e08b5c40d63 \
+            -regtest=1 -server=1 -txindex=1 \
+            -rpcuser=regtest -rpcpassword=regtestpass \
+            -rpcbind=0.0.0.0:18443 -rpcallowip=0.0.0.0/0 \
+            -bind=0.0.0.0:18444 -discover=0 -dnsseed=0 -fixedseeds=0 -natpmp=0 \
+            -fallbackfee=0.0002 -acceptnonstdtxn=1 \
+            -zmqpubhashblock=tcp://0.0.0.0:28332
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail --user regtest:regtestpass \
+              --data-binary '{"jsonrpc":"1.0","id":"ready","method":"getblockchaininfo","params":[]}' \
+              -H 'content-type:text/plain;' http://127.0.0.1:18443/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs bitcoind-regtest
+          exit 1
+
+      - name: Publish production gateway
+        run: dotnet publish src/MiningcoreBtcSolo/MiningcoreBtcSolo.csproj -c Release -o build --framework net10.0
+
+      - name: Build regtest harness
+        run: dotnet build src/MiningcoreBtcSolo.Regtest/MiningcoreBtcSolo.Regtest.csproj -c Release
+
+      - name: Run real production-path matrix
+        shell: bash
+        run: |
+          for mode in all p2p-fast lifecycle extranonce; do
+            dotnet run --project src/MiningcoreBtcSolo.Regtest/MiningcoreBtcSolo.Regtest.csproj \
+              -c Release --no-build -- "$mode"
+          done

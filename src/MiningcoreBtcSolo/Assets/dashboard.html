@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>
+<meta name='theme-color' content='#f2f3f5'>
+<title>Miningcore BTC Solo</title>
+<style>
+:root{--page:#f2f3f5;--ink:#202124;--muted:#656b73;--line:#d9dde2;--blue:#0067b8;--teal:#008272;--orange:#d83b01;--amber:#ffb900;--green:#107c10;--red:#c23934;--charcoal:#323130}
+*{box-sizing:border-box}
+html{color-scheme:light;background:var(--page)}
+body{margin:0;min-width:280px;min-height:100vh;background:var(--page);color:var(--ink);font-family:'Segoe UI',Arial,sans-serif;font-size:15px;letter-spacing:0;-webkit-font-smoothing:antialiased}
+button{font:inherit}
+.page{width:min(1280px,100%);margin:0 auto;padding:28px 24px 36px}
+.masthead{display:flex;align-items:flex-start;justify-content:space-between;gap:28px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.brand h1{margin:0;font-size:30px;line-height:1.15;font-weight:650}
+.brand-meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:9px;color:var(--muted);font-size:12px}
+.status-area{display:flex;align-items:flex-start;gap:10px;max-width:520px}
+.status{display:grid;grid-template-columns:12px minmax(0,1fr);gap:4px 10px;min-width:280px;padding:10px 12px;border:1px solid var(--line);background:#fff}
+.status-dot{grid-row:1/3;width:10px;height:10px;margin-top:4px;border-radius:50%;background:var(--blue)}
+.status strong{font-size:14px;line-height:1.25}
+.status span:last-child{color:var(--muted);font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.status.ok{border-left:4px solid var(--green)}
+.status.ok .status-dot{background:var(--green)}
+.status.warn{border-left:4px solid var(--amber)}
+.status.warn .status-dot{background:var(--amber)}
+.status.danger{border-left:4px solid var(--red)}
+.status.danger .status-dot{background:var(--red)}
+.refresh{width:42px;height:42px;flex:0 0 42px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);font-size:23px;line-height:1;cursor:pointer}
+.refresh:hover{border-color:#8a9098;background:#f8f9fa}
+.refresh:focus-visible,.tab:focus-visible{outline:3px solid #111;outline-offset:2px}
+.refresh:disabled{cursor:wait;opacity:.55}
+.tiles{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px}
+.tile{grid-column:span 3;display:flex;min-width:0;min-height:164px;flex-direction:column;padding:18px;border:1px solid rgba(0,0,0,.08);border-radius:2px;color:#fff;transition:transform .14s ease,filter .14s ease}
+.tile.wide{grid-column:span 6}
+.tile:hover{transform:translateY(-2px);filter:brightness(1.04)}
+.tile-blue{background:var(--blue)}
+.tile-teal{background:var(--teal)}
+.tile-orange{background:var(--orange)}
+.tile-amber{background:var(--amber);color:#202124}
+.tile-green{background:var(--green)}
+.tile-red{background:var(--red)}
+.tile-dark{background:var(--charcoal)}
+.tile-label{font-size:12px;font-weight:650;text-transform:uppercase}
+.tile-value{margin-top:15px;font-size:32px;font-weight:650;line-height:1.05;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.tile.wide .tile-value{font-size:40px}
+.tile-detail{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:auto;padding-top:15px;font-size:12px;line-height:1.4}
+.tile-detail span{min-width:0;overflow-wrap:anywhere}
+.tile-detail strong{font-weight:650}
+.code{font-family:'Cascadia Mono','SFMono-Regular',Consolas,monospace;font-variant-numeric:tabular-nums}
+.activity{margin-top:30px}
+.activity-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:12px}
+.activity-head h2{margin:0;font-size:21px;font-weight:650}
+.tabs{display:flex;flex-wrap:wrap;gap:4px}
+.tab{min-height:40px;padding:8px 14px;border:1px solid var(--line);border-radius:2px;background:#fff;color:var(--ink);cursor:pointer}
+.tab:hover{border-color:#8a9098}
+.tab.active{border-color:var(--blue);background:var(--blue);color:#fff}
+.data-list{display:grid;gap:6px}
+.data-row{display:grid;align-items:center;gap:12px;min-width:0;padding:13px 14px;border:1px solid var(--line);border-left:4px solid var(--blue);background:#fff}
+.worker-row{grid-template-columns:minmax(260px,1.4fr) repeat(3,minmax(110px,.35fr))}
+.share-row{grid-template-columns:minmax(190px,.8fr) repeat(2,minmax(90px,.3fr)) minmax(360px,1.6fr) minmax(100px,.35fr);border-left-color:var(--teal)}
+.block-row{grid-template-columns:minmax(120px,.45fr) minmax(240px,1.5fr) repeat(2,minmax(110px,.5fr));border-left-color:var(--orange)}
+.row-main,.row-stat{min-width:0}
+.row-main span,.row-stat span{display:block;margin-bottom:4px;color:var(--muted);font-size:11px;text-transform:uppercase}
+.row-main strong,.row-stat strong{display:block;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.share-hash{font-size:12px!important;word-break:break-all;overflow-wrap:anywhere}
+.row-sub{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.35;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.status-pill{display:inline-block;width:max-content;padding:4px 7px;border:1px solid currentColor;border-radius:2px;font-size:12px;font-weight:650}
+.status-pill.ok{color:var(--green)}
+.status-pill.warn{color:#8a5b00}
+.status-pill.danger{color:var(--red)}
+.empty{min-height:136px;display:grid;place-items:center;padding:24px;border:1px dashed #b8bdc4;background:#fafafa;color:var(--muted);text-align:center}
+@media(max-width:980px){.page{padding:22px 18px 30px}.tiles{grid-template-columns:repeat(6,minmax(0,1fr))}.tile{grid-column:span 3}.tile.wide{grid-column:span 6}.share-row{grid-template-columns:repeat(2,minmax(0,1fr))}.share-row .row-main,.share-row .share-hash-stat{grid-column:1/-1}.block-row{grid-template-columns:repeat(2,minmax(0,1fr))}.block-row .row-main{grid-column:1/-1}}
+@media(max-width:720px){.masthead{flex-direction:column;gap:16px}.status-area{width:100%;max-width:none}.status{min-width:0;flex:1}.activity-head{align-items:flex-start;flex-direction:column}.worker-row{grid-template-columns:repeat(2,minmax(0,1fr))}.worker-row .row-main{grid-column:1/-1}}
+@media(max-width:560px){.page{padding:18px 12px 26px}.brand h1{font-size:25px}.tiles{grid-template-columns:1fr}.tile,.tile.wide{grid-column:span 1;min-height:146px}.tile-value,.tile.wide .tile-value{font-size:30px}.tabs{display:grid;width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}.tab{padding:8px 6px}.worker-row,.share-row,.block-row{grid-template-columns:1fr}.worker-row .row-main,.share-row .row-main,.block-row .row-main{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.tile{transition:none}.tile:hover{transform:none}}
+</style>
+</head>
+<body>
+<main class='page'>
+  <header class='masthead'>
+    <div class='brand'>
+      <h1>Miningcore BTC Solo</h1>
+      <div class='brand-meta'><span id='version'>Loading version</span><span id='uptime'>Uptime --</span><span id='updated'>Not updated</span></div>
+    </div>
+    <div class='status-area'>
+      <div class='status' id='status' role='status' aria-live='polite'>
+        <span class='status-dot' aria-hidden='true'></span>
+        <strong id='status-label'>Connecting</strong>
+        <span id='status-note'>Waiting for the first snapshot.</span>
+      </div>
+      <button class='refresh' id='refresh' type='button' title='Refresh dashboard' aria-label='Refresh dashboard'>&#8635;</button>
+    </div>
+  </header>
+  <section class='tiles' aria-label='Mining overview'>
+    <article class='tile tile-blue wide'>
+      <div class='tile-label'>Total Hashrate</div>
+      <div class='tile-value code' id='hashrate'>--</div>
+      <div class='tile-detail'><span id='hashrate-window'>Waiting for shares</span></div>
+    </article>
+    <article class='tile tile-teal'>
+      <div class='tile-label'>Subscribed Workers</div>
+      <div class='tile-value code' id='workers'>--</div>
+      <div class='tile-detail'><span id='connections'>-- connected sockets</span></div>
+    </article>
+    <article class='tile tile-orange'>
+      <div class='tile-label'>Current Height</div>
+      <div class='tile-value code' id='height'>--</div>
+      <div class='tile-detail'><span id='transactions'>-- transactions</span><span id='reward'>-- BTC</span></div>
+    </article>
+    <article class='tile tile-amber'>
+      <div class='tile-label'>Network</div>
+      <div class='tile-value code' id='network-hashrate'>--</div>
+      <div class='tile-detail'><span>Difficulty <strong id='network-difficulty'>--</strong></span></div>
+    </article>
+    <article class='tile tile-green'>
+      <div class='tile-label'>Valid Shares</div>
+      <div class='tile-value code' id='valid-shares'>--</div>
+      <div class='tile-detail'><span><strong id='rejected-shares'>--</strong> rejected</span></div>
+    </article>
+    <article class='tile tile-red'>
+      <div class='tile-label'>Accepted Blocks</div>
+      <div class='tile-value code' id='accepted-blocks'>--</div>
+      <div class='tile-detail'><span><strong id='submitted-blocks'>--</strong> submitted</span></div>
+    </article>
+    <article class='tile tile-dark'>
+      <div class='tile-label'>Best Share</div>
+      <div class='tile-value code' id='best-share'>--</div>
+      <div class='tile-detail'><span id='best-share-detail'>No accepted shares yet</span></div>
+    </article>
+  </section>
+  <section class='activity' aria-labelledby='activity-title'>
+    <div class='activity-head'>
+      <h2 id='activity-title'>Workers</h2>
+      <div class='tabs' role='tablist' aria-label='Activity view'>
+        <button class='tab active' type='button' role='tab' aria-selected='true' aria-controls='data-list' data-view='workers'>Workers</button>
+        <button class='tab' type='button' role='tab' aria-selected='false' aria-controls='data-list' data-view='shares'>Shares</button>
+        <button class='tab' type='button' role='tab' aria-selected='false' aria-controls='data-list' data-view='blocks'>Blocks</button>
+      </div>
+    </div>
+    <div class='data-list' id='data-list' role='tabpanel'><div class='empty'>Loading activity</div></div>
+  </section>
+</main>
+<script>
+var state={stats:null,workers:[],shares:[],blocks:[],view:'workers'};
+var refreshBusy=false,pollTimer=null;
+function byId(id){return document.getElementById(id)}
+function num(value){var parsed=Number(value);return isFinite(parsed)?parsed:0}
+function fmtInt(value){return Math.round(num(value)).toLocaleString()}
+function fmtFixed(value,digits){return num(value).toFixed(digits)}
+function fmtCompact(value){var n=Math.abs(num(value)),units=['','K','M','G','T','P','E','Z','Y'],index=0;if(!n)return'0';while(n>=1000&&index<units.length-1){n/=1000;index++}return n.toFixed(n>=100?1:2)+units[index]}
+/** SI hashrate from H/s: H/s, kH/s, MH/s, GH/s, TH/s, PH/s, EH/s, … */
+function fmtHashrate(value){var n=Math.abs(num(value)),units=['H/s','kH/s','MH/s','GH/s','TH/s','PH/s','EH/s','ZH/s','YH/s'],index=0;if(!n)return'--';while(n>=1000&&index<units.length-1){n/=1000;index++}var digits=n>=100?1:(n>=10?2:3);return n.toFixed(digits)+' '+units[index]}
+/** Prefer hashrate_hps; fall back to legacy hashrate_th_s / worker.hashrate (TH/s). */
+function hashrateHpsFromStats(stats){if(stats&&stats.hashrate_hps!=null&&isFinite(num(stats.hashrate_hps)))return num(stats.hashrate_hps);return num(stats&&stats.hashrate_th_s)*1e12}
+function hashrateHpsFromWorker(worker){if(worker&&worker.hashrate_hps!=null&&isFinite(num(worker.hashrate_hps)))return num(worker.hashrate_hps);return num(worker&&worker.hashrate)*1e12}
+function fmtDuration(value){var seconds=Math.max(0,Math.floor(num(value))),days=Math.floor(seconds/86400),hours,minutes,parts=[];seconds%=86400;hours=Math.floor(seconds/3600);seconds%=3600;minutes=Math.floor(seconds/60);if(days)parts.push(days+'d');if(hours||parts.length)parts.push(hours+'h');if(minutes||parts.length)parts.push(minutes+'m');parts.push(seconds%60+'s');return parts.join(' ')}
+function pad2(value){return value<10?'0'+value:String(value)}
+function fmtDateTime(ms){var date;if(!num(ms))return'--';date=new Date(num(ms));return date.getFullYear()+'-'+pad2(date.getMonth()+1)+'-'+pad2(date.getDate())+' '+pad2(date.getHours())+':'+pad2(date.getMinutes())+':'+pad2(date.getSeconds())}
+function fmtRelative(ms){var seconds,minutes,hours,days;if(!num(ms))return'Unavailable';seconds=Math.max(0,Math.floor((Date.now()-num(ms))/1000));if(seconds<5)return'just now';if(seconds<60)return seconds+'s ago';minutes=Math.floor(seconds/60);if(minutes<60)return minutes+'m ago';hours=Math.floor(minutes/60);if(hours<24)return hours+'h ago';days=Math.floor(hours/24);return days<7?days+'d ago':fmtDateTime(ms)}
+function esc(value){var node=document.createElement('div');node.appendChild(document.createTextNode(value===null||value===undefined?'':String(value)));return node.innerHTML}
+function titleCase(value){var text=value?String(value):'unknown';return text.split('_').map(function(part){return part?part.charAt(0).toUpperCase()+part.slice(1):part}).join(' ')}
+function setText(id,value){byId(id).textContent=value}
+function blockTone(value){var result=value?String(value).toLowerCase():'unknown';if(result==='submitted'||result==='duplicate'||result==='accepted')return'ok';if(result==='confirm_failed'||result==='inconclusive'||result==='duplicate-inconclusive'||result==='unknown')return'warn';return'danger'}
+function setStatus(tone,label,note){byId('status').className='status '+tone;setText('status-label',label);setText('status-note',note)}
+function renderStats(stats){var subscriptions=num(stats.subscriptions),totalHps=hashrateHpsFromStats(stats),windowSecs=num(stats.hashrate_window_secs)||600,age=fmtRelative(stats.last_refresh_ms),freshMs=stats.last_refresh_ms?Math.max(0,Date.now()-num(stats.last_refresh_ms)):0;setText('version',stats.gateway_version||'Miningcore BTC Solo');setText('uptime','Uptime '+fmtDuration(stats.uptime_seconds));setText('updated','Updated '+fmtDateTime(Date.now()));setText('hashrate',fmtHashrate(totalHps));setText('hashrate-window',totalHps||subscriptions?fmtInt(windowSecs)+'s window':'Waiting for shares');setText('workers',fmtInt(subscriptions));setText('connections',fmtInt(stats.connections)+' connected sockets');setText('height',stats.current_height!==null&&stats.current_height!==undefined?fmtInt(stats.current_height):'--');setText('transactions',fmtInt(stats.txn_count)+' transactions');setText('reward',fmtFixed(stats.current_value_btc,8)+' BTC');setText('network-hashrate',fmtHashrate(stats.network_hashrate_hps));setText('network-difficulty',fmtCompact(stats.network_difficulty));setText('valid-shares',fmtInt(stats.shares_valid));setText('rejected-shares',fmtInt(stats.shares_error));setText('accepted-blocks',fmtInt(stats.blocks_accepted));setText('submitted-blocks',fmtInt(stats.blocks_submitted));if(stats.best_share_available){var bestParts=[];if(stats.best_share_user_agent)bestParts.push(stats.best_share_user_agent);if(stats.best_share_extranonce1)bestParts.push('en1='+stats.best_share_extranonce1);setText('best-share',fmtCompact(stats.best_share_actual_diff));setText('best-share-detail',(bestParts.length?bestParts.join(' · '):'Unknown')+' / assigned '+fmtInt(stats.best_share_difficulty)+' / '+fmtRelative(stats.best_share_timestamp_ms))}else{setText('best-share','--');setText('best-share-detail','No accepted shares yet')}if(!stats.ready){setStatus('danger','Waiting for template',stats.last_refresh_ok?'A job is not ready yet.':'The last template refresh failed.')}else if(!stats.last_refresh_ok||freshMs>120000){setStatus('warn','Template stale','Last refresh '+age)}else{setStatus('ok','Template ready','Last refresh '+age)}}
+/** Public miner identity: UA title + en1 sub only (no address / IP / session). */
+function workerTitle(worker){return worker.user_agent||'Unknown'}
+function workerSub(worker){return worker.extranonce1?'en1='+worker.extranonce1:''}
+function shareTitle(share){return share.user_agent||'Unknown'}
+function renderWorkers(){var items=state.workers;if(!items.length){return`<div class='empty'>No subscribed workers</div>`}return items.map(function(worker,index){var hps=hashrateHpsFromWorker(worker),sub=workerSub(worker);return`<article class='data-row worker-row'><div class='row-main'><span>Worker ${index+1}</span><strong>${esc(workerTitle(worker))}</strong>${sub?`<span class='row-sub code'>${esc(sub)}</span>`:''}</div><div class='row-stat'><span>Hashrate</span><strong class='code'>${fmtHashrate(hps)}</strong></div><div class='row-stat'><span>Assigned diff</span><strong class='code'>${fmtCompact(worker.assigned_difficulty||0)}</strong></div><div class='row-stat'><span>Best difficulty</span><strong class='code'>${fmtCompact(worker.best_diff)}</strong></div></article>`}).join('')}
+function renderShares(){var items=state.shares.slice(0,15);if(!items.length){return`<div class='empty'>No accepted shares</div>`}return items.map(function(share,index){var assigned=num(share.difficulty),actual=num(share.actual_diff),hash=share.hash||'--',sub=share.extranonce1?'en1='+share.extranonce1:'';return`<article class='data-row share-row'><div class='row-main'><span>Share ${index+1}</span><strong>${esc(shareTitle(share))}</strong>${sub?`<span class='row-sub code'>${esc(sub)}</span>`:''}</div><div class='row-stat'><span>Assigned</span><strong class='code'>${fmtInt(assigned)}</strong></div><div class='row-stat'><span>Actual</span><strong class='code'>${fmtCompact(actual)}</strong></div><div class='row-stat share-hash-stat'><span>Hash</span><strong class='code share-hash'>${esc(hash)}</strong></div><div class='row-stat'><span>Submitted</span><strong>${esc(fmtRelative(share.timestamp_ms))}</strong></div></article>`}).join('')}
+function renderBlocks(){var items=state.blocks;if(!items.length){return`<div class='empty'>No block submissions</div>`}return items.map(function(block){var tone=blockTone(block.result);return`<article class='data-row block-row'><div class='row-main'><span>Height</span><strong class='code'>${fmtInt(block.height)}</strong></div><div class='row-stat'><span>Block hash</span><strong class='code'>${esc(block.hash||'--')}</strong></div><div class='row-stat'><span>Result</span><strong class='status-pill ${tone}'>${esc(titleCase(block.result))}</strong></div><div class='row-stat'><span>Submitted</span><strong>${esc(fmtRelative(block.timestamp_ms))}</strong></div></article>`}).join('')}
+function renderActivity(){var renderer=state.view==='shares'?renderShares:state.view==='blocks'?renderBlocks:renderWorkers;setText('activity-title',state.view==='shares'?'Shares':state.view==='blocks'?'Blocks':'Workers');byId('data-list').innerHTML=renderer()}
+function selectView(view){var tabs=document.querySelectorAll('.tab'),index;state.view=view;for(index=0;index<tabs.length;index++){var active=tabs[index].getAttribute('data-view')===view;tabs[index].className='tab'+(active?' active':'');tabs[index].setAttribute('aria-selected',active?'true':'false')}renderActivity()}
+function fetchJson(url){return fetch(url,{cache:'no-store'}).then(function(response){if(!response.ok)throw new Error(url+' '+response.status);return response.json()})}
+function scheduleRefresh(){clearTimeout(pollTimer);if(!document.hidden)pollTimer=setTimeout(refresh,10000)}
+function refresh(){if(refreshBusy)return;refreshBusy=true;byId('refresh').disabled=true;Promise.all([fetchJson('/api/stats'),fetchJson('/api/workers').catch(function(){return[]}),fetchJson('/api/shares').catch(function(){return[]}),fetchJson('/api/blocks').catch(function(){return[]})]).then(function(values){state.stats=values[0];state.workers=Array.isArray(values[1])?values[1].filter(function(item){return item&&typeof item==='object'}).sort(function(a,b){return hashrateHpsFromWorker(b)-hashrateHpsFromWorker(a)}):[];state.shares=Array.isArray(values[2])?values[2].filter(function(item){return item&&typeof item==='object'}).sort(function(a,b){return num(b.timestamp_ms)-num(a.timestamp_ms)}).slice(0,15):[];state.blocks=Array.isArray(values[3])?values[3].filter(function(item){return item&&typeof item==='object'}).sort(function(a,b){return num(b.timestamp_ms)-num(a.timestamp_ms)}):[];renderStats(state.stats);renderActivity()}).catch(function(){setStatus('danger','Dashboard offline','The embedded API could not be reached.');setText('updated','Refresh failed '+fmtDateTime(Date.now()))}).then(function(){refreshBusy=false;byId('refresh').disabled=false;scheduleRefresh()})}
+document.querySelector('.tabs').addEventListener('click',function(event){var view=event.target.getAttribute('data-view');if(view)selectView(view)});
+byId('refresh').addEventListener('click',refresh);
+document.addEventListener('visibilitychange',function(){if(document.hidden){clearTimeout(pollTimer)}else{refresh()}});
+refresh();
+</script>
+</body>
+</html>

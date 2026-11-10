@@ -1,0 +1,67 @@
+# MiningcoreBtcSolo on UmbrelOS
+#
+# Bitcoin runs in another Umbrel app container. Join the shared Docker network
+# so this service can reach bitcoind by container DNS name (not 127.0.0.1).
+#
+# Files needed on the Umbrel host:
+#   docker-compose.umbrel.yml
+#   config.umbrel.json   (copy → edit RPC / payout → mount as config)
+#
+# Usage (SSH into Umbrel):
+#   cd /path/to/miningcore-btc-solo
+#   # edit config.umbrel.json (rpc_url, credentials, coinbase.address)
+#   # set image to your GHCR package if different
+#   docker compose -f docker-compose.umbrel.yml pull
+#   docker compose -f docker-compose.umbrel.yml up -d
+#
+# Discover Bitcoin on the Umbrel network:
+#   docker network inspect umbrel_main_network --format '{{range .Containers}}{{.Name}} {{.IPv4Address}}{{"\n"}}{{end}}'
+# Common service names:
+#   bitcoin_bitcoind_1          (official Bitcoin app, RPC often :8332)
+#   libre-relay_bitcoind_1      (Libre Relay, RPC often :8442)
+#   bitcoin-knots_bitcoind_1    (Knots variant)
+#
+# Find RPC user/password in the Bitcoin app settings / app data on Umbrel.
+
+services:
+  miningcore-btc-solo:
+    # Replace with your published GHCR image (lowercase owner/repo).
+    image: ghcr.io/<owner>/<repo>:latest
+    container_name: miningcore-btc-solo
+    restart: unless-stopped
+    # Do NOT use network_mode: host on Umbrel — host mode leaves the
+    # Umbrel app network and cannot resolve bitcoin_* containers reliably.
+    ports:
+      - "3333:3333"   # Stratum V1 (miners)
+      - "7152:7152"   # Dashboard + JSON API
+    volumes:
+      - ./config.umbrel.json:/app/config.json:ro
+      # Durable pending submitblock payloads (survives container restart)
+      - miningcore-btc-solo-data:/app/data
+    environment:
+      - SOLO_CONFIG_PATH=/app/config.json
+      - DOTNET_EnableDiagnostics=0
+    networks:
+      - umbrel_main_network
+    # Optional: wait until Bitcoin container is up (adjust name to match yours).
+    # depends_on does not work across external compose projects; start Bitcoin first.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:7152/healthz"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  miningcore-btc-solo-data:
+    name: miningcore-btc-solo-data
+
+networks:
+  umbrel_main_network:
+    external: true
+    name: umbrel_main_network

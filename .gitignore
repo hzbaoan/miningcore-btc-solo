@@ -1,0 +1,12 @@
+bin/
+obj/
+build/
+.vs/
+*.user
+*.swp
+*.pdb
+*.log
+.DS_Store
+data/
+**/pending-blocks/
+**/failed-blocks/

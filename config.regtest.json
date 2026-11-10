@@ -1,0 +1,53 @@
+{
+  "log_level": "Information",
+  "network": "regtest",
+  "stratum": {
+    "listen_addr": "127.0.0.1",
+    "listen_port": 3333,
+    "extranonce1_size": 4,
+    "extranonce2_size": 4,
+    "idle_timeout_secs": 3600,
+    "max_connections": 32,
+    "max_message_bytes": 65536,
+    "send_queue_capacity": 64,
+    "write_timeout_secs": 10,
+    "clean_broadcast_timeout_ms": 1500,
+    "late_share_grace_ms": 2000
+  },
+  "bitcoind": {
+    "rpc_url": "http://127.0.0.1:18443",
+    "rpc_user": "regtest",
+    "rpc_password": "regtestpass",
+    "zmq_block_urls": [
+      "tcp://127.0.0.1:28332"
+    ],
+    "p2p_fast_peer": "127.0.0.1:18444"
+  },
+  "coinbase": {
+    "address": "REPLACE_AT_RUNTIME",
+    "message": "regtest-e2e",
+    "segwit_commitment": true
+  },
+  "difficulty": {
+    "min": 0.001,
+    "max": 1,
+    "default": 0.01,
+    "target_time_secs": 5,
+    "retarget_time_secs": 90,
+    "variance_percent": 30,
+    "retarget_smoothing": 0.25
+  },
+  "runtime": {
+    "keep_old_jobs": 3,
+    "max_retired_jobs": 8,
+    "retired_job_max_age_secs": 15,
+    "max_retained_transaction_bytes": 67108864,
+    "data_dir": "data"
+  },
+  "api": {
+    "listen_addr": "127.0.0.1",
+    "listen_port": 7152,
+    "enabled": true,
+    "p2p_fast_peer_uuid": "11111111-1111-4111-8111-111111111111"
+  }
+}

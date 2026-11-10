@@ -1,0 +1,24 @@
+services:
+  miningcore-btc-solo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: miningcore-btc-solo:latest
+    container_name: miningcore-btc-solo
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./config.json:/app/config.json:ro
+      # Durable pending submitblock payloads (survives container restart)
+      - miningcore-btc-solo-data:/app/data
+    environment:
+      - SOLO_CONFIG_PATH=/app/config.json
+    # When network_mode is host, published ports are unused on Linux.
+    # For Docker Desktop (Windows/macOS), switch to bridge networking and map:
+    # ports:
+    #   - "3333:3333"
+    #   - "7152:7152"
+
+volumes:
+  miningcore-btc-solo-data:
+    name: miningcore-btc-solo-data
